@@ -3,12 +3,16 @@ package com.arcurunir.e2s;
 import java.io.IOException;
 
 import android.app.Activity;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannedString;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -34,6 +38,9 @@ public class MainActivity extends Activity {
       @Override
       public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (event != null) {
+          InputMethodManager imm = 
+              (InputMethodManager) getBaseContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+           imm.hideSoftInputFromWindow(((EditText) findViewById(R.id.inputText)).getWindowToken(), 0);
           lookupAndOutput();
           return true;
         }
@@ -49,14 +56,15 @@ public class MainActivity extends Activity {
     } catch (SQLException sqle) {
       System.out.println(sqle);
     }
-    //TextView translations = (TextView) findViewById(R.id.translations);
-    //translations.setMovementMethod(new ScrollingMovementMethod());
     return true;
   }
   
   
   public void enterClick(View v) {
     lookupAndOutput();
+    InputMethodManager imm = 
+        (InputMethodManager) getBaseContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+     imm.hideSoftInputFromWindow(((EditText) findViewById(R.id.inputText)).getWindowToken(), 0);
   }
   
   public void lookupAndOutput() {
@@ -71,7 +79,7 @@ public class MainActivity extends Activity {
         if (!queryResult.moveToNext()) {
           errorToast("Word not found in dictionary. Sorry!");
         } else {
-          translations.setText("");
+          translations.setText(new SpannedString(""));
           do {
             String translation = queryResult.getString(queryResult.getColumnIndex("translation"));
             String pos = queryResult.getString(queryResult.getColumnIndex("pos"));
@@ -87,15 +95,15 @@ public class MainActivity extends Activity {
   }
   
   void output(TextView translations, String tr, String p, String te, String u) {
-    translations.setText(translations.getText() + "Sindarin translation: " + tr + "\n");
-    translations.setText(translations.getText() + "Part of Speech: " + p + "\n");
+    translations.append(Html.fromHtml("Sindarin translation: <b>" + tr + "</b><br>\n"));
+    translations.append("Part of Speech: " + p + "\n");
     if (!te.equals("-")) {
-      translations.setText(translations.getText() + "Tense: " + te + "\n");  
+      translations.append("Tense: " + te + "\n");  
     }
     if (!u.equals("-")) {
-      translations.setText(translations.getText() + "Usage: " + u + "\n");
+      translations.append("Usage: " + u + "\n");
     }
-    translations.setText(translations.getText() + "\n");
+    translations.append("\n");
   }
   
   public void errorToast(String message) {
